@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { INTEGRATIONS, CATEGORIES } from './constants';
 import { Integration, Category } from './types';
 import { IntegrationCard } from './components/IntegrationCard';
@@ -9,6 +9,7 @@ const App: React.FC = () => {
   const [selectedCategory, setSelectedCategory] = useState<Category>('All');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedIntegration, setSelectedIntegration] = useState<Integration | null>(null);
+  const [visibleCount, setVisibleCount] = useState(9);
 
   // Filter Logic
   const filteredIntegrations = useMemo(() => {
@@ -32,6 +33,14 @@ const App: React.FC = () => {
     return result;
   }, [selectedCategory, searchQuery]);
 
+  // Reset visible count when filters change
+  useEffect(() => {
+    setVisibleCount(9);
+  }, [selectedCategory, searchQuery]);
+
+  const displayedIntegrations = filteredIntegrations.slice(0, visibleCount);
+  const hasMore = visibleCount < filteredIntegrations.length;
+
   const clearSearch = () => {
     setSearchQuery('');
   };
@@ -41,12 +50,6 @@ const App: React.FC = () => {
       
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         
-        {/* Page Title */}
-        <div className="mb-10">
-          <h1 className="text-4xl font-bold tracking-tight text-gray-900 mb-2">Integrations</h1>
-          <p className="text-lg text-gray-500">Supercharge your workflow by connecting Nexus with your favorite tools.</p>
-        </div>
-
         {/* Controls Bar */}
         <div className="flex flex-col md:flex-row gap-4 mb-10 items-start md:items-center">
             
@@ -99,8 +102,8 @@ const App: React.FC = () => {
                       Available Integrations
                     </span>
                  </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                  {filteredIntegrations.map(integration => (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {displayedIntegrations.map(integration => (
                       <IntegrationCard 
                       key={integration.id} 
                       data={integration} 
@@ -108,6 +111,17 @@ const App: React.FC = () => {
                       />
                   ))}
                 </div>
+                
+                {hasMore && (
+                  <div className="flex justify-center mt-12">
+                    <button 
+                      onClick={() => setVisibleCount(prev => prev + 9)}
+                      className="px-8 py-3 bg-white border border-gray-300 text-gray-700 font-medium rounded-full hover:bg-gray-50 hover:border-gray-400 transition-all shadow-sm active:scale-95"
+                    >
+                      Load More
+                    </button>
+                  </div>
+                )}
                </>
             ) : (
                 <div className="flex flex-col items-center justify-center py-20 text-center bg-gray-50 rounded-2xl border border-dashed border-gray-200">
